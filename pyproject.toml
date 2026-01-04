@@ -1,8 +1,48 @@
 [project]
 name = "freee-partner-refiner"
 version = "0.1.0"
-description = "freee取引先情報をgBizINFO APIで補完するツール"
+description = "銀行/カード明細から親会社を特定し、freee取引先とマッチングするツール"
 requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "freee-partner-refiner contributors"}
+]
+keywords = ["freee", "accounting", "partner", "matching", "claude", "ai"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "requests>=2.28.0",
+    "anthropic>=0.40.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.0.0",
+    "types-requests",
+]
+
+[project.urls]
+Repository = "https://github.com/your-org/freee-partner-refiner"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["*"]
+exclude = ["tests*", "docs*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -20,3 +60,18 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "raise NotImplementedError",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [".venv", "__pycache__", ".cache", "build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "C4", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_ignores = true
+ignore_missing_imports = true

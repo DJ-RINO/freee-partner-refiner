@@ -59,13 +59,14 @@
 
 ---
 
-## 🔴 現在のフェーズ: フェーズ5（CI/CD） `cc:WIP`
+## ✅ フェーズ5: CI/CD `cc:完了`
 
-### 次のタスク
+### 完了したタスク
 
-- [ ] GitHub Actions 設定 `cc:TODO`
-- [ ] 自動テスト `cc:TODO`
-- [ ] リリースワークフロー `cc:TODO`
+- [x] GitHub Actions 設定（ci.yml）
+- [x] 自動テストワークフロー（test.yml）
+- [x] リリースワークフロー（release.yml）
+- [x] pyproject.toml 拡張（ビルド設定、ruff、mypy）
 
 ---
 
@@ -123,3 +124,4 @@ export ANTHROPIC_API_KEY="your_key"
 | 2026-01-04 | マッチング＋統合テスト（全41件通過） |
 | 2026-01-04 | README更新 + docs/usage.md |
 | 2026-01-04 | ログ + エラーハンドリング追加 |
+| 2026-01-04 | GitHub Actions CI/CD 設定 |
