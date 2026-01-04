@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Glob(**)",
+      "Grep(**)",
+      "Bash(python:*)",
+      "Bash(pip:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)"
+    ],
+    "ask": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(rm:*)",
+      "Write(**)",
+      "Edit(**)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)"
+    ],
+    "disableBypassPermissionsMode": "disable"
+  },
+  "safety": {
+    "preventSecretExposure": true,
+    "secretPatterns": [
+      "FREEE_ACCESS_TOKEN",
+      "GBIZ_API_TOKEN",
+      "API_KEY",
+      "SECRET"
+    ]
+  }
+}
