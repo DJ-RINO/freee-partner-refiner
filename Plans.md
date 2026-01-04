@@ -3,133 +3,120 @@
 ## 現在のステータス
 
 **モード**: Solo（Claude Code のみ）
-**方針**: セマンティック企業マッチング（2026-01-04決定）
+**方針**: セマンティック企業マッチング
 
 ---
 
-## ✅ AI一括処理 `cc:完了`
+## ✅ フェーズ3: テスト・品質 `cc:完了`
 
-### 実装済みスクリプト
+### 完了したタスク
 
-| ファイル | 説明 |
-|---------|------|
-| `batch_export.py` | freee取引先をCSVエクスポート |
-| `batch_import.py` | AI結果をfreeeにインポート |
-| `batch_processor.py` | 一括処理メインスクリプト |
-| `prompts/batch_lookup_prompt.md` | AI用プロンプトテンプレート |
-
-### 使い方
-
-#### 方法1: 手動ワークフロー（Manus/ChatGPT使用）
-
-```bash
-# Step 1: 環境変数設定
-export FREEE_ACCESS_TOKEN="your_token"
-export FREEE_COMPANY_ID="your_company_id"
-
-# Step 2: 手動ワークフロー実行
-python batch_processor.py manual
-```
-
-#### 方法2: 自動ワークフロー（Claude API使用）
-
-```bash
-# 環境変数に ANTHROPIC_API_KEY も追加
-export ANTHROPIC_API_KEY="your_key"
-
-# 最初の10件をテスト
-python batch_processor.py auto --limit 10
-```
+- [x] pytest対応（requirements.txt + pyproject.toml）
+- [x] テストカバレッジ計測の設定（pytest-cov）
+- [x] parent_company_finderのモックテスト（8件）
+- [x] 統合テスト transaction_processor（7件）
+- [x] 全41件のテスト通過
 
 ---
 
-## アーキテクチャ概要
+## ✅ 完了済みフェーズ
 
-```
-銀行/カード明細 "トイザラス熊本店"
-        ↓
-[Step 1] 親会社特定（Web検索 + AI解析）
-        ↓
-     "株式会社トイザラス"
-        ↓
-[Step 2] freee既存取引先を取得
-        ↓
-[Step 3] 類似度マッチング
-        ↓
-[Step 4] 紐付け提案 or 新規作成提案
-```
-
----
-
-## フェーズ1: 基盤整備 `cc:完了`
+### フェーズ1: 基盤整備 `cc:完了`
 
 - [x] プロジェクト初期化
 - [x] ワークフローファイル作成
 - [x] requirements.txt 作成
 - [x] 型ヒントの追加
 
-## フェーズ2: 新アーキテクチャ実装 `cc:WIP`
+### フェーズ2: コア機能実装 `cc:完了`
 
-### Step 1: 親会社特定モジュール
-- [ ] Web検索クライアント実装（Google/Bing API or スクレイピング）
-- [ ] AI解析モジュール（Claude API で親会社名を抽出）
-- [ ] キャッシュ機構（同じ店舗名の再検索を防ぐ）
+- [x] 親会社特定モジュール → `parent_company_finder.py`
+- [x] AI一括処理スクリプト → `batch_*.py`
+- [x] マッチングエンジン → `partner_matcher.py`
+- [x] 紐付けモジュール → `partner_linker.py`
+- [x] 統合スクリプト → `transaction_processor.py`
 
-### Step 2: freee既存取引先連携
-- [x] 取引先一覧取得（既存）
-- [ ] 取引先データのインデックス化（高速検索用）
+### フェーズ3: テスト `cc:完了`
 
-### Step 3: マッチングエンジン
-- [ ] 類似度計算（レーベンシュタイン距離 / Jaro-Winkler）
-- [ ] 法人番号での完全一致チェック
-- [ ] 閾値設定と候補ランキング
-
-### Step 4: 結果出力・紐付け
-- [ ] マッチ結果のレポート生成
-- [ ] freee取引先への紐付けAPI呼び出し
-- [ ] 新規取引先作成提案（gBizINFO連携）
-
-## フェーズ3: テスト・品質 `cc:TODO`
-
-- [ ] ユニットテスト作成
-- [ ] 実データでの検証（サンプル10件）
-- [ ] エッジケース対応（個人事業主、海外企業など）
-
-## フェーズ4: 運用・ドキュメント `cc:TODO`
-
-- [ ] 環境変数設定ガイド
-- [ ] 使用例・チュートリアル
-- [ ] エラーハンドリング強化
+- [x] テストディレクトリ作成
+- [x] partner_matcher テスト（15件）
+- [x] partner_linker テスト（10件）
+- [x] pytest対応 + pyproject.toml
+- [x] parent_company_finder モックテスト（8件）
+- [x] 統合テスト transaction_processor（7件）
+- [x] **全41件通過**
 
 ---
 
-## 必要なAPI/サービス
+## 🔴 現在のフェーズ: フェーズ4（運用・ドキュメント） `cc:WIP`
 
-| サービス | 用途 | 必須/任意 |
-|---------|------|----------|
-| freee API | 取引先管理 | 必須 |
-| Claude API | 親会社名の解析 | 必須 |
-| gBizINFO API | 法人番号取得 | 必須 |
-| Google Search API | Web検索 | 任意（代替あり）|
+### 次のタスク
 
----
-
-## 次にやること
-
-「**続けて**」→ フェーズ2の実装を開始
-「**Step 1から**」→ 親会社特定モジュールから実装
+- [ ] 環境変数設定ガイド（README更新） `cc:TODO`
+- [ ] 使用例・チュートリアル `cc:TODO`
+- [ ] エラーハンドリング強化 `cc:TODO`
+- [ ] ログ出力の追加 `cc:TODO`
 
 ---
 
-## 完了したタスク
+## 🟡 残りのフェーズ
 
-| 日付 | タスク | 備考 |
-|------|--------|------|
-| 2026-01-04 | プロジェクト初期化 | harness-init |
-| 2026-01-04 | ワークフローファイル作成 | AGENTS.md, CLAUDE.md, Plans.md |
-| 2026-01-04 | requirements.txt | requests>=2.28.0, anthropic>=0.40.0 |
-| 2026-01-04 | 型ヒント追加 | TypedDict, Python 3.10+ |
-| 2026-01-04 | アーキテクチャ変更決定 | セマンティック企業マッチング方式 |
-| 2026-01-04 | 親会社特定モジュール | parent_company_finder.py |
-| 2026-01-04 | AI一括処理スクリプト | batch_export/import/processor.py |
-| 2026-01-04 | プロンプトテンプレート | prompts/batch_lookup_prompt.md |
+### フェーズ5: CI/CD `cc:TODO`
+
+- [ ] GitHub Actions 設定
+- [ ] 自動テスト
+- [ ] リリースワークフロー
+
+---
+
+## クイックリファレンス
+
+### コマンド
+
+```bash
+# テスト実行
+python -m unittest discover -s tests -v
+
+# 一括処理（手動ワークフロー）
+python batch_processor.py manual
+
+# 一括処理（自動・Claude API）
+python batch_processor.py auto --limit 10
+
+# 取引処理
+python transaction_processor.py transactions.csv --limit 10
+```
+
+### 環境変数
+
+```bash
+export FREEE_ACCESS_TOKEN="your_token"
+export FREEE_COMPANY_ID="your_company_id"
+export ANTHROPIC_API_KEY="your_key"
+```
+
+---
+
+## ハーネスワークフロー
+
+**`/work`** を実行すると、上記の `cc:TODO` タスクを順番に処理します。
+
+**使い方:**
+- 「`/work`」→ 次のTODOタスクを実行
+- 「`/sync-status`」→ 進捗を確認
+- 「`/harness-review`」→ コードレビュー
+
+---
+
+## 完了したタスク履歴
+
+| 日付 | タスク |
+|------|--------|
+| 2026-01-04 | プロジェクト初期化 |
+| 2026-01-04 | 型ヒント追加 |
+| 2026-01-04 | 親会社特定モジュール |
+| 2026-01-04 | AI一括処理スクリプト |
+| 2026-01-04 | マッチングエンジン |
+| 2026-01-04 | 紐付けモジュール |
+| 2026-01-04 | 統合スクリプト |
+| 2026-01-04 | ユニットテスト（25件通過） |
