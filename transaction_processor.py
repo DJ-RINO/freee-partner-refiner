@@ -22,6 +22,12 @@ from batch_export import FreeePartnerExporter
 from parent_company_finder import ParentCompanyFinder, ParentCompanyResult
 from partner_matcher import PartnerMatcher, MatchConfig, PartnerData
 from partner_linker import PartnerLinker, LinkConfig, LinkReportGenerator
+from logger import get_logger
+from exceptions import (
+    ConfigurationError,
+    DataFormatError,
+    format_error_for_user
+)
 
 
 class TransactionInput(TypedDict):
@@ -65,7 +71,8 @@ class TransactionProcessor:
         self,
         freee_access_token: str | None = None,
         anthropic_api_key: str | None = None,
-        config: ProcessorConfig | None = None
+        config: ProcessorConfig | None = None,
+        log_to_file: bool = False
     ) -> None:
         """
         初期化
@@ -74,8 +81,13 @@ class TransactionProcessor:
             freee_access_token: freee APIトークン
             anthropic_api_key: Anthropic APIキー
             config: 処理設定
+            log_to_file: ファイルにログ出力するか
         """
         self.config = config or ProcessorConfig()
+        self.logger = get_logger(
+            "transaction_processor",
+            log_dir="logs" if log_to_file else None
+        )
 
         # freeeエクスポーター
         self.exporter = FreeePartnerExporter(freee_access_token)
@@ -99,6 +111,7 @@ class TransactionProcessor:
 
     def load_partners(self, company_id: int) -> None:
         """freee取引先をロードしてインデックス化"""
+        self.logger.info("freee取引先を読み込み中...")
         print("📥 freee取引先を読み込み中...")
         partners_raw = self.exporter.get_partners(company_id)
 
@@ -120,6 +133,7 @@ class TransactionProcessor:
 
         total = len(partners)
         with_corp = sum(1 for p in partners if p.get("corporate_number"))
+        self.logger.info(f"{total}件の取引先をロード（法人番号あり: {with_corp}件）")
         print(f"   ✅ {total}件の取引先をロード（法人番号あり: {with_corp}件）")
 
     def process_transaction(
@@ -314,17 +328,28 @@ class TransactionProcessor:
 def load_transactions_from_csv(csv_path: str) -> list[TransactionInput]:
     """CSVから取引を読み込み"""
     transactions: list[TransactionInput] = []
+    logger = get_logger("transaction_processor")
 
-    with open(csv_path, "r", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            transactions.append({
-                "id": row.get("id", row.get("ID", "")),
-                "name": row.get("name", row.get("取引先名", row.get("取引先", ""))),
-                "amount": int(row["amount"]) if row.get("amount") else None,
-                "date": row.get("date", row.get("日付"))
-            })
+    try:
+        with open(csv_path, "r", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            for row_num, row in enumerate(reader, start=2):
+                name = row.get("name", row.get("取引先名", row.get("取引先", "")))
+                if not name:
+                    logger.warning(f"行{row_num}: 取引先名が空のためスキップ")
+                    continue
+                transactions.append({
+                    "id": row.get("id", row.get("ID", str(row_num))),
+                    "name": name,
+                    "amount": int(row["amount"]) if row.get("amount") else None,
+                    "date": row.get("date", row.get("日付"))
+                })
+    except FileNotFoundError:
+        raise DataFormatError(f"ファイルが見つかりません", csv_path)
+    except csv.Error as e:
+        raise DataFormatError(f"CSV解析エラー: {e}", csv_path)
 
+    logger.info(f"{len(transactions)}件の取引を読み込み")
     return transactions
 
 
@@ -397,7 +422,11 @@ def main() -> None:
     required_vars = ["FREEE_ACCESS_TOKEN", "FREEE_COMPANY_ID", "ANTHROPIC_API_KEY"]
     missing = [v for v in required_vars if not os.environ.get(v)]
     if missing:
-        print(f"❌ 必要な環境変数が設定されていません: {', '.join(missing)}")
+        error = ConfigurationError(
+            "必要な環境変数が設定されていません",
+            ", ".join(missing)
+        )
+        print(format_error_for_user(error))
         sys.exit(1)
 
     company_id = int(os.environ["FREEE_COMPANY_ID"])
@@ -423,8 +452,11 @@ def main() -> None:
     try:
         transactions = load_transactions_from_csv(csv_path)
         print(f"\n📄 {len(transactions)}件の取引を読み込みました")
-    except FileNotFoundError:
-        print(f"❌ ファイルが見つかりません: {csv_path}")
+    except DataFormatError as e:
+        print(format_error_for_user(e))
+        sys.exit(1)
+    except Exception as e:
+        print(format_error_for_user(e))
         sys.exit(1)
 
     # 処理実行

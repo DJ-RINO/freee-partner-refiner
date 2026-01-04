@@ -38,3 +38,8 @@ freee_partners_*.csv
 ai_result*.csv
 auto_result*.csv
 import_report*.csv
+transaction_results_*.csv
+link_proposals_*.csv
+
+# Logs
+logs/
